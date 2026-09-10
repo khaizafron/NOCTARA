@@ -1,0 +1,9 @@
+# Generated at publish time from ../skills/transitions-dev (see scripts/sync-skill.mjs)
+.agents/skills/transitions-dev/
+
+# npm pack output
+*.tgz
+node_modules/
+
+# local relay/agent run logs
+*.log

@@ -1,0 +1,23 @@
+{
+  "name": "@noctara/autonomous-worker",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "start": "node --loader tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@noctara/shared": "workspace:*",
+    "@noctara/autonomy": "workspace:*",
+    "@noctara/tools": "workspace:*",
+    "@noctara/policy": "workspace:*",
+    "@noctara/memory": "workspace:*",
+    "@noctara/model-router": "workspace:*",
+    "@noctara/github": "workspace:*",
+    "@noctara/realtime": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

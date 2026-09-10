@@ -1,0 +1,169 @@
+﻿'use client';
+
+import React, { useState } from 'react';
+import { X, Edit3, Plus, Search } from 'lucide-react';
+import { MemoryRecord } from '@noctara/shared';
+
+interface MemoryInspectorProps {
+  isOpen: boolean;
+  onClose: () => void;
+  memories: MemoryRecord[];
+  onCorrectMemory: (id: string, newContent: string) => void;
+  onAddMemory: (content: string, type: 'FACT' | 'PREFERENCE') => void;
+}
+
+export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
+  isOpen,
+  onClose,
+  memories,
+  onCorrectMemory,
+  onAddMemory
+}) => {
+  const [selectedLayer, setSelectedLayer] = useState<string>('all');
+  const [search, setSearch] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [correctingId, setCorrectingId] = useState<string | null>(null);
+  const [correctionText, setCorrectionText] = useState('');
+
+  if (!isOpen) return null;
+
+  const filtered = memories.filter((m) => {
+    if (selectedLayer !== 'all' && m.layer !== selectedLayer) return false;
+    if (search && !m.content.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-xl bg-zinc-950 border-l border-zinc-800 h-full flex flex-col p-6 font-mono text-xs">
+        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 font-bold text-sm">7-LAYER MEMORY INSPECTOR</span>
+            <span className="text-zinc-600">({memories.length} records)</span>
+          </div>
+          <button onClick={onClose} className="p-1 text-zinc-500 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 py-3 overflow-x-auto border-b border-zinc-900">
+          {['all', 'identity', 'semantic', 'pattern', 'project', 'tool_learning'].map((layer) => (
+            <button
+              key={layer}
+              onClick={() => setSelectedLayer(layer)}
+              className={`px-2.5 py-1 rounded text-[10px] uppercase transition ${
+                selectedLayer === layer
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {layer}
+            </button>
+          ))}
+        </div>
+
+        <div className="py-3 flex items-center gap-2 border-b border-zinc-900">
+          <Search className="w-3.5 h-3.5 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Search durable records..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-transparent flex-1 text-zinc-200 placeholder-zinc-600 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-3 space-y-3">
+          {filtered.length === 0 ? (
+            <div className="text-center py-10 text-zinc-600">No matching memories found.</div>
+          ) : (
+            filtered.map((m) => (
+              <div key={m.id} className="p-3 rounded border border-zinc-800 bg-zinc-900/40 space-y-1.5">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-amber-400 font-semibold">
+                    [{m.layer.toUpperCase()}] {m.type}
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[9px] ${
+                      m.verificationStatus === 'VERIFIED'
+                        ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/60'
+                        : m.verificationStatus === 'CORRECTED'
+                        ? 'bg-red-950 text-red-400'
+                        : 'bg-zinc-800 text-zinc-400'
+                    }`}
+                  >
+                    {m.verificationStatus}
+                  </span>
+                </div>
+
+                {correctingId === m.id ? (
+                  <div className="space-y-2 pt-1">
+                    <textarea
+                      value={correctionText}
+                      onChange={(e) => setCorrectionText(e.target.value)}
+                      className="w-full bg-black border border-amber-500/50 p-2 text-zinc-100 rounded text-xs focus:outline-none"
+                      rows={2}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setCorrectingId(null)}
+                        className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-[10px]"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          onCorrectMemory(m.id, correctionText);
+                          setCorrectingId(null);
+                        }}
+                        className="px-2 py-1 rounded bg-amber-600 text-white text-[10px] font-bold"
+                      >
+                        Save Correction
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-zinc-200 text-xs font-sans leading-relaxed">{m.content}</p>
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1">
+                      <span>Confidence: {Math.round(m.confidence * 100)}%</span>
+                      <button
+                        onClick={() => {
+                          setCorrectingId(m.id);
+                          setCorrectionText(m.content);
+                        }}
+                        className="text-zinc-400 hover:text-amber-300 flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3 h-3" /> Correct
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="pt-3 border-t border-zinc-900 flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Teach ROOT fact or preference..."
+            value={newContent}
+            onChange={(e) => setNewContent(e.target.value)}
+            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-3 py-1.5 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 text-xs"
+          />
+          <button
+            onClick={() => {
+              if (!newContent.trim()) return;
+              onAddMemory(newContent.trim(), 'FACT');
+              setNewContent('');
+            }}
+            className="px-3 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 flex items-center gap-1 font-bold text-xs"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
