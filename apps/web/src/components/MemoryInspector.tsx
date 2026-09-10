@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
-import { X, Edit3, Plus, Search } from 'lucide-react';
+import { X, Edit3, Plus, Search, Database } from 'lucide-react';
 import { MemoryRecord } from '@noctara/shared';
 
 interface MemoryInspectorProps {
@@ -34,27 +34,37 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-xl bg-zinc-950 border-l border-zinc-800 h-full flex flex-col p-6 font-mono text-xs">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 font-bold text-sm">7-LAYER MEMORY INSPECTOR</span>
-            <span className="text-zinc-600">({memories.length} records)</span>
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-xl bg-[#04060c]/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-[0_0_60px_rgba(0,0,0,0.9)] h-full flex flex-col p-6 font-mono text-xs text-zinc-300">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <Database className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <div className="text-amber-400 font-bold text-sm tracking-wider">7-LAYER MEMORY BANK</div>
+              <div className="text-zinc-500 text-[10px]">Durable Human & Agent State ({memories.length} records)</div>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1 text-zinc-500 hover:text-white">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all active:scale-95"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 py-3 overflow-x-auto border-b border-zinc-900">
+        {/* Layer Filters */}
+        <div className="flex items-center gap-1.5 py-3 overflow-x-auto border-b border-white/[0.04] no-scrollbar">
           {['all', 'identity', 'semantic', 'pattern', 'project', 'tool_learning'].map((layer) => (
             <button
               key={layer}
               onClick={() => setSelectedLayer(layer)}
-              className={`px-2.5 py-1 rounded text-[10px] uppercase transition ${
+              className={`px-2.5 py-1 rounded-md text-[10px] uppercase transition-all tracking-wider active:scale-95 ${
                 selectedLayer === layer
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                  : 'bg-white/[0.03] text-zinc-500 hover:text-zinc-300 border border-transparent'
               }`}
             >
               {layer}
@@ -62,34 +72,39 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
           ))}
         </div>
 
-        <div className="py-3 flex items-center gap-2 border-b border-zinc-900">
+        {/* Search */}
+        <div className="py-3 flex items-center gap-2.5 border-b border-white/[0.04]">
           <Search className="w-3.5 h-3.5 text-zinc-500" />
           <input
             type="text"
-            placeholder="Search durable records..."
+            placeholder="Search recalled memories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent flex-1 text-zinc-200 placeholder-zinc-600 focus:outline-none"
+            className="bg-transparent flex-1 text-zinc-200 placeholder-zinc-600 focus:outline-none text-xs"
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto py-3 space-y-3">
+        {/* Memory Records List */}
+        <div className="flex-1 overflow-y-auto py-3 space-y-2.5 pr-1">
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-zinc-600">No matching memories found.</div>
+            <div className="text-center py-16 text-zinc-600">No matching memories found in layer.</div>
           ) : (
             filtered.map((m) => (
-              <div key={m.id} className="p-3 rounded border border-zinc-800 bg-zinc-900/40 space-y-1.5">
+              <div
+                key={m.id}
+                className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all space-y-2"
+              >
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-amber-400 font-semibold">
+                  <span className="text-amber-400 font-semibold tracking-wider">
                     [{m.layer.toUpperCase()}] {m.type}
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded text-[9px] ${
+                    className={`px-2 py-0.5 rounded text-[9px] font-mono tracking-tight ${
                       m.verificationStatus === 'VERIFIED'
-                        ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/60'
+                        ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
                         : m.verificationStatus === 'CORRECTED'
-                        ? 'bg-red-950 text-red-400'
-                        : 'bg-zinc-800 text-zinc-400'
+                        ? 'bg-red-950/60 text-red-400 border border-red-800/40'
+                        : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
                     }`}
                   >
                     {m.verificationStatus}
@@ -101,13 +116,13 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
                     <textarea
                       value={correctionText}
                       onChange={(e) => setCorrectionText(e.target.value)}
-                      className="w-full bg-black border border-amber-500/50 p-2 text-zinc-100 rounded text-xs focus:outline-none"
+                      className="w-full bg-black/60 border border-amber-500/50 p-2.5 text-zinc-100 rounded-lg text-xs focus:outline-none font-sans"
                       rows={2}
                     />
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setCorrectingId(null)}
-                        className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-[10px]"
+                        className="px-2.5 py-1 rounded bg-zinc-800 text-zinc-400 text-[10px] active:scale-95"
                       >
                         Cancel
                       </button>
@@ -116,7 +131,7 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
                           onCorrectMemory(m.id, correctionText);
                           setCorrectingId(null);
                         }}
-                        className="px-2 py-1 rounded bg-amber-600 text-white text-[10px] font-bold"
+                        className="px-3 py-1 rounded bg-amber-500 text-black text-[10px] font-bold active:scale-95"
                       >
                         Save Correction
                       </button>
@@ -125,14 +140,14 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
                 ) : (
                   <>
                     <p className="text-zinc-200 text-xs font-sans leading-relaxed">{m.content}</p>
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1">
+                    <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-white/[0.04]">
                       <span>Confidence: {Math.round(m.confidence * 100)}%</span>
                       <button
                         onClick={() => {
                           setCorrectingId(m.id);
                           setCorrectionText(m.content);
                         }}
-                        className="text-zinc-400 hover:text-amber-300 flex items-center gap-1"
+                        className="text-zinc-400 hover:text-amber-300 flex items-center gap-1 transition-colors active:scale-95"
                       >
                         <Edit3 className="w-3 h-3" /> Correct
                       </button>
@@ -144,13 +159,14 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
           )}
         </div>
 
-        <div className="pt-3 border-t border-zinc-900 flex items-center gap-2">
+        {/* Add Memory Form */}
+        <div className="pt-3 border-t border-white/[0.06] flex items-center gap-2">
           <input
             type="text"
             placeholder="Teach ROOT fact or preference..."
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
-            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-3 py-1.5 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 text-xs"
+            className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 text-xs"
           />
           <button
             onClick={() => {
@@ -158,7 +174,7 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({
               onAddMemory(newContent.trim(), 'FACT');
               setNewContent('');
             }}
-            className="px-3 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 flex items-center gap-1 font-bold text-xs"
+            className="px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 flex items-center gap-1 font-bold text-xs active:scale-95 transition-all"
           >
             <Plus className="w-3.5 h-3.5" /> Add
           </button>
