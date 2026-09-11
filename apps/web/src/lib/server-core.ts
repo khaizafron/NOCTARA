@@ -1,4 +1,4 @@
-﻿import { createDefaultModelRouter, ModelRouter, ModelRegistry } from '@noctara/model-router';
+import { createDefaultModelRouter, ModelRouter, ModelRegistry } from '@noctara/model-router';
 import { globalMemoryEngine, MemoryEngine } from '@noctara/memory';
 import { ToolRegistry, ToolGateway } from '@noctara/tools';
 import { globalPolicyEngine, PolicyEngine } from '@noctara/policy';
@@ -47,7 +47,13 @@ class ServerCore {
   }
 }
 
-// Global singleton instance for Next.js API routes
-const globalForServer = globalThis as unknown as { __noctara_core__?: ServerCore };
-export const serverCore = globalForServer.__noctara_core__ ?? new ServerCore();
-if (process.env.NODE_ENV !== 'production') globalForServer.__noctara_core__ = serverCore;
+export { ServerCore };
+
+// Global singleton instance for Next.js API routes across hot-reloads
+const globalForCore = globalThis as unknown as { serverCoreInstance?: ServerCore };
+export const serverCore = globalForCore.serverCoreInstance ?? new ServerCore();
+if (process.env.NODE_ENV !== 'production') globalForCore.serverCoreInstance = serverCore;
+
+export function getServerCore(): ServerCore {
+  return serverCore;
+}

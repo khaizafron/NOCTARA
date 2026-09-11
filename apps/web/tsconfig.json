@@ -12,8 +12,19 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@noctara/shared": ["../../packages/shared/src/index.ts"],
+      "@noctara/model-router": ["../../packages/model-router/src/index.ts"],
+      "@noctara/memory": ["../../packages/memory/src/index.ts"],
+      "@noctara/tools": ["../../packages/tools/src/index.ts"],
+      "@noctara/policy": ["../../packages/policy/src/index.ts"],
+      "@noctara/agent-core": ["../../packages/agent-core/src/index.ts"],
+      "@noctara/voice": ["../../packages/voice/src/index.ts"],
+      "@noctara/autonomy": ["../../packages/autonomy/src/index.ts"],
+      "@noctara/realtime": ["../../packages/realtime/src/index.ts"],
+      "@noctara/github": ["../../packages/github/src/index.ts"]
     },
+
     "allowJs": true,
     "noEmit": true,
     "incremental": true

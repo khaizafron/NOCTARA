@@ -14,7 +14,7 @@ export class OpenRouterAdapter implements ProviderAdapter {
   private baseUrl: string;
   private defaultModel: string;
 
-  constructor(apiKey?: string, baseUrl = 'https://openrouter.ai/api/v1', defaultModel = 'anthropic/claude-3.5-sonnet') {
+  constructor(apiKey?: string, baseUrl = 'https://openrouter.ai/api/v1', defaultModel = 'nex-agi/nex-n2.5-mini:free') {
     this.apiKey = apiKey || process.env.OPENROUTER_API_KEY || null;
     this.baseUrl = process.env.OPENROUTER_BASE_URL || baseUrl;
     this.defaultModel = process.env.OPENROUTER_DEFAULT_MODEL || defaultModel;
@@ -50,16 +50,16 @@ export class OpenRouterAdapter implements ProviderAdapter {
         id: this.defaultModel,
         provider: 'openrouter',
         apiFormat: 'openai-chat',
-        displayName: 'Claude 3.5 Sonnet (OpenRouter)',
+        displayName: 'Nex N2.5 Mini (OpenRouter)',
         capabilities: {
           supportsStreaming: true,
           supportsToolCalling: true,
           supportsStructuredOutput: true,
           supportsVision: true,
           supportsAudio: false,
-          contextWindow: 200000
+          contextWindow: 128000
         },
-        costTier: 'high',
+        costTier: 'free',
         isConfigured: isConf,
         health: isConf ? 'online' : 'unconfigured'
       },

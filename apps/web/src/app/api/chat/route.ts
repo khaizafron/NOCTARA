@@ -1,5 +1,5 @@
-﻿import { NextResponse } from 'next/server';
-import { serverCore } from '@/lib/server-core';
+import { NextResponse } from 'next/server';
+import { getServerCore } from '@/lib/server-core';
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +8,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    const turns = await serverCore.orchestrator.executeConversation(message);
+    const core = getServerCore();
+    const turns = await core.orchestrator.executeConversation(message);
     return NextResponse.json({ turns });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Turn execution failed' }, { status: 500 });

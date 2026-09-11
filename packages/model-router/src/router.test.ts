@@ -32,7 +32,7 @@ describe('Model Router & Provider Adapters', () => {
     const openrouter = new OpenRouterAdapter('');
     expect(openrouter.isConfigured()).toBe(false);
     const models = openrouter.getSupportedModels();
-    expect(models.some((m) => m.id.includes('claude'))).toBe(true);
+    expect(models.some((m) => m.id.includes('nex') || m.id.includes('deepseek'))).toBe(true);
   });
 
   it('falls back to local Mock adapter when external keys are not provided', async () => {
@@ -61,5 +61,18 @@ describe('Model Router & Provider Adapters', () => {
 
     const reasoningTask = router.classifyTask({ messages: [{ role: 'user', content: 'Why did this architectural pattern fail?' }] });
     expect(reasoningTask).toBe('reasoning');
+  });
+
+  it('prioritizes TokenRouter over Gemini when both are configured', () => {
+    const registry = new ModelRegistry();
+    registry.registerProvider(new GeminiAdapter('test-gemini-key'));
+    registry.registerProvider(new TokenRouterAdapter('test-tokenrouter-key'));
+    registry.registerProvider(new OpenRouterAdapter('test-openrouter-key'));
+    registry.registerProvider(new MockDevAdapter());
+
+    const router = new ModelRouter(registry);
+    const route = router.resolveRoute({ messages: [{ role: 'user', content: 'Hello' }] });
+    expect(route.providerId).toBe('tokenrouter');
+    expect(route.fallbackChain[0].providerId).toBe('gemini');
   });
 });

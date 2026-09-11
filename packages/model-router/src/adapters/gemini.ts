@@ -10,7 +10,7 @@ import { ProviderAdapter } from '../types.js';
 
 export class GeminiAdapter implements ProviderAdapter {
   public readonly id: ProviderId = 'gemini';
-  public readonly displayName = 'Google Gemini (Primary)';
+  public readonly displayName = 'Google Gemini (Secondary / Fallback)';
   private apiKey: string | null;
   private defaultModel: string;
 

@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { AgentState } from '@noctara/shared';
+import { AgentId, AgentState } from '@noctara/shared';
 
 interface CoreCanvasProps {
   state: AgentState;
-  audioActivity?: number; // 0.0 to 1.0
+  activeAgent?: AgentId | null;
+  audioActivity?: number; // 0.0 to 1.0 (real audio analyser amplitude)
   className?: string;
   size?: number; // CSS pixel dimensions (default 360)
 }
@@ -20,7 +21,7 @@ void main() {
 }
 `;
 
-// GLSL Fragment Shader: Volumetric raytraced AI intelligence sphere
+// GLSL Fragment Shader: Volumetric raytraced AI intelligence sphere with 11 distinct runtime states
 const FS_SOURCE = `
 precision highp float;
 
@@ -28,7 +29,8 @@ varying vec2 v_uv;
 uniform vec2 u_resolution;
 uniform float u_time;
 uniform float u_audio;
-uniform int u_state; // 0:IDLE, 1:LISTENING, 2:THINKING, 3:SPEAKING, 4:EXECUTING, 5:ERROR
+uniform int u_state; // 0:IDLE, 1:LISTENING, 2:THINKING, 3:SPEAKING, 4:EXECUTING, 5:RESEARCHING, 6:VERIFYING, 7:LEARNING, 8:AWAITING_APPROVAL, 9:ERROR_RECOVERY, 10:OFFLINE
+uniform int u_agent; // 0: NEUTRAL, 1: NOX (cyan/blue), 2: ARIA (amber/gold)
 
 // 2D Rotation
 mat2 rot(float a) {
@@ -79,25 +81,59 @@ float fbm(vec3 p) {
 void main() {
   vec2 coord = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
   float dist = length(coord);
+  float angle = atan(coord.y, coord.x);
 
-  // Core base radius with state breathing & audio reactivity
+  // Core base radius & state breathing dynamics
   float baseRadius = 0.32;
-  float pulse = sin(u_time * 1.6) * 0.012;
+  float pulse = sin(u_time * 1.4) * 0.009;
+  float flowSpeed = 0.5;
 
-  if (u_state == 1) { // LISTENING: responsive compression & ripple
-    baseRadius -= 0.015 + u_audio * 0.02;
-    pulse = sin(u_time * 4.0) * (0.015 + u_audio * 0.03);
-  } else if (u_state == 2) { // THINKING: rapid energetic pulsation
-    pulse = sin(u_time * 5.0) * 0.018;
-  } else if (u_state == 3) { // SPEAKING: rhythmic amplitude expansion
-    pulse = sin(u_time * 3.5) * 0.025 + u_audio * 0.04;
-  } else if (u_state == 4) { // EXECUTING: focused high-energy vibration
+  if (u_state == 1) {
+    // 1: LISTENING - Surface attentive compression, inner concentration, mic sensitivity
+    baseRadius -= 0.016 + u_audio * 0.025;
+    pulse = sin(u_time * 3.5) * 0.01 + u_audio * 0.035;
+    flowSpeed = 0.8;
+  } else if (u_state == 2) {
+    // 2: THINKING - Computational turbulence, multi-axis flow, rapid pulse
+    pulse = sin(u_time * 5.5) * 0.016;
+    flowSpeed = 2.8;
+  } else if (u_state == 3) {
+    // 3: SPEAKING - Audio-reactive surface displacement, energetic corona
+    pulse = sin(u_time * 3.5) * 0.015 + u_audio * 0.055;
+    flowSpeed = 1.6;
+  } else if (u_state == 4) {
+    // 4: EXECUTING - NOX directional high-energy rotation
     pulse = sin(u_time * 6.0) * 0.012;
+    flowSpeed = 2.4;
+  } else if (u_state == 5) {
+    // 5: RESEARCHING - ARIA orbital scan, soft field expansion
+    pulse = sin(u_time * 2.2) * 0.014;
+    flowSpeed = 1.1;
+  } else if (u_state == 6) {
+    // 6: VERIFYING - Precise geometric compact vibration
+    pulse = sin(u_time * 7.0) * 0.006;
+    flowSpeed = 1.3;
+  } else if (u_state == 7) {
+    // 7: LEARNING - Center convergence
+    pulse = sin(u_time * 2.0) * 0.018;
+    flowSpeed = 0.7;
+  } else if (u_state == 8) {
+    // 8: AWAITING_APPROVAL - Pulsing caution cadence
+    pulse = sin(u_time * 3.8) * 0.022;
+    flowSpeed = 0.9;
+  } else if (u_state == 9) {
+    // 9: ERROR_RECOVERY - Chromatic anomaly jitter
+    pulse = sin(u_time * 9.0) * 0.02 + sin(coord.y * 60.0 + u_time * 15.0) * 0.006;
+    flowSpeed = 1.8;
+  } else if (u_state == 10) {
+    // 10: OFFLINE - Dormant ember drift
+    pulse = sin(u_time * 0.6) * 0.004;
+    flowSpeed = 0.15;
   }
 
   float R = baseRadius + pulse;
 
-  // Colors: NOCTARA signature palette
+  // Signature NOCTARA Color Palette
   vec3 c_deepVoid = vec3(0.02, 0.03, 0.08);       // Obsidian base
   vec3 c_indigo   = vec3(0.18, 0.12, 0.55);       // Royal ultraviolet
   vec3 c_cyan     = vec3(0.00, 0.88, 1.00);       // NOX electric cyan
@@ -105,27 +141,81 @@ void main() {
   vec3 c_amber    = vec3(1.00, 0.65, 0.12);       // ARIA solar gold
   vec3 c_white    = vec3(0.98, 0.99, 1.00);       // Specular nucleus
 
-  // State color modulation
-  if (u_state == 5) { // ERROR: chromatic solarized warning
-    c_cyan = vec3(1.0, 0.2, 0.1);
-    c_indigo = vec3(0.4, 0.05, 0.05);
+  // State-specific palette adjustments
+  if (u_state == 1) {
+    // Listening field: heightened cyan glow
+    c_cyan = vec3(0.1, 0.95, 1.0);
+  } else if (u_state == 4) {
+    // Executing: laser cyan dominance
+    c_magenta = vec3(0.0, 0.6, 0.9);
+  } else if (u_state == 5) {
+    // Researching: celestial sapphire & warm solar amber
+    c_cyan = vec3(0.2, 0.6, 1.0);
+    c_magenta = vec3(0.9, 0.5, 0.2);
+  } else if (u_state == 6) {
+    // Verifying: emerald/cyan precision tone
+    c_cyan = vec3(0.1, 0.95, 0.7);
+    c_magenta = vec3(0.1, 0.8, 0.9);
+  } else if (u_state == 7) {
+    // Learning: radiant ultraviolet to platinum
+    c_indigo = vec3(0.35, 0.2, 0.8);
+    c_cyan = vec3(0.9, 0.85, 1.0);
+  } else if (u_state == 8) {
+    // Awaiting Approval: caution amber
+    c_cyan = vec3(1.0, 0.6, 0.1);
+    c_magenta = vec3(0.9, 0.4, 0.05);
+  } else if (u_state == 9) {
+    // Error Recovery: chromatic warning crimson
+    c_cyan = vec3(1.0, 0.25, 0.15);
+    c_indigo = vec3(0.45, 0.08, 0.08);
+    c_magenta = vec3(0.8, 0.1, 0.1);
+  } else if (u_state == 10) {
+    // Offline: desaturated dark embers
+    c_cyan = vec3(0.15, 0.2, 0.25);
+    c_indigo = vec3(0.06, 0.06, 0.1);
+    c_magenta = vec3(0.1, 0.1, 0.14);
+    c_amber = vec3(0.2, 0.15, 0.1);
+  }
+
+  // Active agent color bias
+  if (u_agent == 1) { // NOX bias
+    c_cyan = mix(c_cyan, vec3(0.0, 1.0, 1.0), 0.5);
+  } else if (u_agent == 2) { // ARIA bias
+    c_cyan = mix(c_cyan, c_amber, 0.65);
+    c_magenta = mix(c_magenta, vec3(1.0, 0.4, 0.2), 0.5);
   }
 
   // Atmospheric halo / bloom outside sphere
   float outerHalo = exp(-11.0 * max(0.0, dist - R));
-  vec3 haloColor = mix(c_indigo, c_cyan, 0.55) * outerHalo * (0.45 + u_audio * 0.4);
+  float haloIntensity = 0.45 + u_audio * 0.55;
+  if (u_state == 1) haloIntensity += u_audio * 0.8;
+  if (u_state == 3) haloIntensity += u_audio * 0.7;
 
-  // Soft atmospheric outer ring
-  float ring = smoothstep(0.02, 0.0, abs(dist - (R + 0.035 + u_audio * 0.02)));
-  haloColor += c_cyan * ring * 0.35;
+  vec3 haloColor = mix(c_indigo, c_cyan, 0.55) * outerHalo * haloIntensity;
 
-  if (dist > R + 0.14) {
-    // Far outer void with subtle falloff
-    gl_FragColor = vec4(haloColor, outerHalo * 0.6);
+  // Soft atmospheric outer ring / orbital resonance
+  float ringDist = R + 0.035 + u_audio * 0.02;
+  float ring = smoothstep(0.02, 0.0, abs(dist - ringDist));
+  haloColor += c_cyan * ring * (0.35 + u_audio * 0.3);
+
+  // Additional state rings
+  if (u_state == 1) {
+    // Concentric acoustic ripples when listening
+    float acousticRipple = sin(dist * 50.0 - u_time * 8.0) * 0.5 + 0.5;
+    haloColor += c_cyan * acousticRipple * exp(-8.0 * max(0.0, dist - R)) * (0.2 + u_audio * 0.5);
+  } else if (u_state == 5) {
+    // Orbiting scanning lines when researching
+    float scanOrbit = sin(angle * 4.0 + u_time * 2.0) * 0.5 + 0.5;
+    haloColor += c_amber * scanOrbit * smoothstep(0.05, 0.0, abs(dist - (R + 0.06))) * 0.5;
+  }
+
+  if (dist > R + 0.15) {
+    // Far outer void falloff
+    gl_FragColor = vec4(haloColor, outerHalo * 0.65);
     return;
   }
 
-  // Inside the sphere: 3D hemisphere ray-tracing
+  // Inside sphere: 3D hemisphere ray-tracing
   float z = sqrt(max(0.0, R * R - dist * dist));
   vec3 normal = vec3(coord.x, coord.y, z) / R;
   vec3 view = vec3(0.0, 0.0, 1.0);
@@ -134,19 +224,27 @@ void main() {
   float fresnel = pow(1.0 - max(0.0, dot(normal, view)), 2.8);
 
   // Volumetric fluid coordinates with multi-frequency flow
-  float flowSpeed = 0.55;
-  if (u_state == 2) flowSpeed = 2.4; // THINKING: accelerated swirl
-  if (u_state == 4) flowSpeed = 1.9; // EXECUTING: high energy flow
-  if (u_state == 3) flowSpeed = 1.4; // SPEAKING: lively flow
-
   vec3 p = normal * 2.2;
   p.xy = rot(u_time * 0.25 * flowSpeed) * p.xy;
   p.yz = rot(u_time * 0.18 * flowSpeed) * p.yz;
 
-  // Fluid noise sampling
+  // State-specific spatial energy dynamics
+  if (u_state == 4) {
+    // NOX Executing: directional plasma sweep jet
+    float jet = sin(angle * 2.0 - u_time * 4.0);
+    p.xy = rot(u_time * 1.5 + jet * 0.3) * p.xy;
+  } else if (u_state == 6) {
+    // Verifying: crystalline geometric lattice modulation
+    p += vec3(sin(p.y * 12.0), cos(p.x * 12.0), 0.0) * 0.08;
+  } else if (u_state == 7) {
+    // Learning: convergence inward
+    p *= (1.0 - sin(u_time * 2.5) * 0.15);
+  }
+
+  // Multi-frequency noise sampling
   float n1 = fbm(p + vec3(0.0, 0.0, u_time * 0.35 * flowSpeed));
   float n2 = fbm(p * 1.6 - vec3(u_time * 0.25 * flowSpeed, 0.0, 0.0));
-  float plasma = (n1 + n2 * 0.7) * 0.6 + 0.5; // 0.0 to 1.0
+  float plasma = (n1 + n2 * 0.7) * 0.6 + 0.5;
 
   // Multi-stop volumetric gradient interpolation
   vec3 sphereColor = mix(c_deepVoid, c_indigo, smoothstep(0.1, 0.5, plasma));
@@ -155,10 +253,14 @@ void main() {
 
   // ARIA solar amber accent in deep layers
   float amberAccent = smoothstep(0.65, 0.95, n2);
-  sphereColor = mix(sphereColor, c_amber, amberAccent * 0.45);
+  sphereColor = mix(sphereColor, c_amber, amberAccent * (u_agent == 2 ? 0.7 : 0.45));
 
   // Internal luminous core nucleus
-  float coreNucleus = exp(-8.5 * dist) * (1.0 + u_audio * 0.8);
+  float nucleusIntensity = 1.0 + u_audio * 1.2;
+  if (u_state == 3) nucleusIntensity += u_audio * 1.5;
+  if (u_state == 7) nucleusIntensity += 0.8; // Learning brilliance
+
+  float coreNucleus = exp(-8.5 * dist) * nucleusIntensity;
   sphereColor += c_white * coreNucleus * 0.85;
 
   // Glass-like chromatic dispersion & Fresnel rim
@@ -176,18 +278,24 @@ void main() {
 
 export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
   state,
+  activeAgent = null,
   audioActivity = 0,
   className = '',
   size = 360
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stateRef = useRef<AgentState>(state);
+  const agentRef = useRef<AgentId | null>(activeAgent);
   const audioRef = useRef<number>(audioActivity);
 
-  // Keep mutable references updated without triggering re-renders
+  // Keep mutable references updated without triggering full component re-renders
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    agentRef.current = activeAgent;
+  }, [activeAgent]);
 
   useEffect(() => {
     audioRef.current = audioActivity;
@@ -197,16 +305,28 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Map AgentState to shader integer
+    // Map AgentState to shader integer (0-10)
     const getStateInt = (s: AgentState): number => {
       switch (s) {
+        case 'IDLE': return 0;
         case 'LISTENING': return 1;
         case 'THINKING': return 2;
         case 'SPEAKING': return 3;
         case 'EXECUTING': return 4;
-        case 'ERROR_RECOVERY': return 5;
-        default: return 0; // IDLE, READY, AWAITING_APPROVAL, etc.
+        case 'RESEARCHING': return 5;
+        case 'VERIFYING': return 6;
+        case 'LEARNING': return 7;
+        case 'AWAITING_APPROVAL': return 8;
+        case 'ERROR_RECOVERY': return 9;
+        case 'OFFLINE': return 10;
+        default: return 0;
       }
+    };
+
+    const getAgentInt = (a: AgentId | null): number => {
+      if (a === 'NOX') return 1;
+      if (a === 'ARIA') return 2;
+      return 0;
     };
 
     // Try WebGL first
@@ -223,9 +343,6 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
     canvas.height = size * dpr;
 
     if (gl) {
-      // -------------------------------------------------------------
-      // WEBGL HIGH-FIDELITY VOLUMETRIC SPHERE RENDERER
-      // -------------------------------------------------------------
       const compileShader = (type: number, src: string): WebGLShader | null => {
         const shader = gl!.createShader(type);
         if (!shader) return null;
@@ -243,7 +360,7 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
       const fs = compileShader(gl.FRAGMENT_SHADER, FS_SOURCE);
 
       if (!vs || !fs) {
-        gl = null; // Fallback to 2D
+        gl = null;
       } else {
         const prog = gl.createProgram();
         if (!prog) {
@@ -275,12 +392,13 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
             const uTime = gl.getUniformLocation(prog, 'u_time');
             const uAudio = gl.getUniformLocation(prog, 'u_audio');
             const uState = gl.getUniformLocation(prog, 'u_state');
+            const uAgent = gl.getUniformLocation(prog, 'u_agent');
 
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-            let startTime = performance.now();
+            const startTime = performance.now();
             let smoothedAudio = 0;
 
             const renderGL = () => {
@@ -289,7 +407,7 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
 
               // Smooth audio damping
               const targetAudio = audioRef.current;
-              smoothedAudio += (targetAudio - smoothedAudio) * 0.14;
+              smoothedAudio += (targetAudio - smoothedAudio) * 0.16;
 
               gl!.clearColor(0, 0, 0, 0);
               gl!.clear(gl!.COLOR_BUFFER_BIT);
@@ -298,12 +416,14 @@ export const NoctaraCoreCanvas: React.FC<CoreCanvasProps> = ({
               gl!.uniform1f(uTime, elapsed);
               gl!.uniform1f(uAudio, smoothedAudio);
               gl!.uniform1i(uState, getStateInt(stateRef.current));
+              gl!.uniform1i(uAgent, getAgentInt(agentRef.current));
 
               gl!.drawArrays(gl!.TRIANGLES, 0, 6);
               animId = requestAnimationFrame(renderGL);
             };
 
             animId = requestAnimationFrame(renderGL);
+
             return () => {
               cancelAnimationFrame(animId);
               if (gl && prog) {

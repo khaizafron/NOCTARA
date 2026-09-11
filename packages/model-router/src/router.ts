@@ -9,7 +9,7 @@ import { RoutingDecision, TaskType, ProviderAdapter } from './types.js';
 
 export class ModelRouter {
   private registry: ModelRegistry;
-  private priorityChain: ProviderId[] = ['gemini', 'tokenrouter', 'openrouter', 'mock'];
+  private priorityChain: ProviderId[] = ['tokenrouter', 'gemini', 'openrouter', 'mock'];
 
   constructor(registry: ModelRegistry) {
     this.registry = registry;

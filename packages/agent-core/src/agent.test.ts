@@ -63,4 +63,45 @@ describe('Agent Core & Three-Way Orchestrator', () => {
     expect(turns[1].speaker).toBe('ARIA');
     expect(turns[2].speaker).toBe('NOX');
   });
+
+  it('regression: guarantees distinct responses, unique IDs, and spokenText when BOTH agents speak', async () => {
+    const turns = await orchestrator.executeConversation('What do you both think about system performance?');
+    expect(turns.length).toBe(2);
+
+    const [first, second] = turns;
+    // Distinct speakers
+    expect(first.speaker).not.toBe(second.speaker);
+
+    // Unique turn IDs
+    expect(first.id).toBeTruthy();
+    expect(second.id).toBeTruthy();
+    expect(first.id).not.toBe(second.id);
+
+    // Shared group turnId
+    expect(first.turnId).toBe(second.turnId);
+
+    // Distinct contents (regression: never duplicate response under two agents)
+    expect(first.content.trim()).not.toBe(second.content.trim());
+
+    // Both have spoken summaries generated
+    expect(first.spokenText).toBeTruthy();
+    expect(second.spokenText).toBeTruthy();
+    expect(first.spokenText.length).toBeLessThanOrEqual(first.content.length + 50);
+  });
+
+  it('alternates between NOX and ARIA for unaddressed general conversational messages', async () => {
+    // Force NOX first
+    await orchestrator.executeConversation('NOX, status check.');
+
+    // Next general message should route to ARIA
+    const t1 = await orchestrator.executeConversation('Hello, apa khabar harini?');
+    expect(t1.length).toBeGreaterThanOrEqual(1);
+    expect(t1[0].speaker).toBe('ARIA');
+
+    // Subsequent general message should route to NOX
+    const t2 = await orchestrator.executeConversation('Bagus, apa perancangan kita?');
+    expect(t2.length).toBeGreaterThanOrEqual(1);
+    expect(t2[0].speaker).toBe('NOX');
+  });
 });
+

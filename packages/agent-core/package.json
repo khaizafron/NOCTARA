@@ -11,7 +11,8 @@
     "@noctara/model-router": "workspace:*",
     "@noctara/memory": "workspace:*",
     "@noctara/tools": "workspace:*",
-    "@noctara/policy": "workspace:*"
+    "@noctara/policy": "workspace:*",
+    "@noctara/voice": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

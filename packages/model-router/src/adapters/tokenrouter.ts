@@ -10,7 +10,7 @@ import { ProviderAdapter } from '../types.js';
 
 export class TokenRouterAdapter implements ProviderAdapter {
   public readonly id: ProviderId = 'tokenrouter';
-  public readonly displayName = 'TokenRouter (Primary 2)';
+  public readonly displayName = 'TokenRouter (Primary)';
   private apiKey: string | null;
   private baseUrl: string;
   private defaultModel: string;

@@ -70,12 +70,27 @@ export class AgentRuntime {
     const basePrompt = this.agentId === 'NOX' ? NOX_SYSTEM_PROMPT : ARIA_SYSTEM_PROMPT;
     const fullSystemPrompt = `${basePrompt}\n${memoryContextBlock}`;
 
-    // 2. Prepare conversation messages
+    // 2. Prepare conversation messages and purge any legacy voice refusal hallucinations
     this.conversationHistory.push({ role: 'user', content: userMessage });
+
+    const cleanHistory = this.conversationHistory
+      .filter((m) => {
+        if (
+          m.role === 'assistant' &&
+          (m.content.includes('text-based autonomous execution') ||
+            m.content.includes('Voice synthesis and audio output') ||
+            m.content.includes('cannot produce spoken language') ||
+            m.content.includes('cannot "say" what you asked'))
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .slice(-10);
 
     const messagesToSend: ChatMessage[] = [
       { role: 'system', content: fullSystemPrompt },
-      ...this.conversationHistory.slice(-10)
+      ...cleanHistory
     ];
 
     // 3. Query Model Router

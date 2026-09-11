@@ -277,7 +277,11 @@ export type NoctaraEventType =
   | 'self_improvement.tested'
   | 'self_improvement.pr.created'
   | 'provider.status.changed'
-  | 'system.telemetry.updated';
+  | 'system.telemetry.updated'
+  | 'github.webhook.received'
+  | 'github.pull_request.received'
+  | 'github.issue_comment.received'
+  | 'github.installation.updated';
 
 export interface NoctaraEvent<T = unknown> {
   id: string;
