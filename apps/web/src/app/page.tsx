@@ -442,7 +442,16 @@ export default function NoctaraRoomPage() {
   };
 
   return (
-    <main className="flex flex-col h-[100dvh] w-full max-w-[100vw] bg-[#030508] text-zinc-100 font-sans select-none overflow-hidden spatial-grid relative">
+    <main
+      className="flex flex-col h-[100dvh] w-full max-w-[100vw] bg-[#030508] text-zinc-100 font-sans select-none overflow-hidden spatial-grid relative"
+      style={{
+        backgroundImage:
+          "url('https://cdn.21st.dev/assets/mirror/c3/c333918af688a4a8a3d004652e6c0ee219457a9d84d380eeb31f513d4b59a09f.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center 90%",
+        backgroundAttachment: "fixed",
+      }}
+    >
       {/* Dynamic Ambient Environmental Aura */}
       <div
         className="absolute inset-0 pointer-events-none transition-all duration-1000"

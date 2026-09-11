@@ -55,13 +55,14 @@ body {
   scrollbar-width: none;
 }
 
-/* Atmospheric spatial grid */
+/* Atmospheric spatial grid — sits as dark overlay over background image */
 .spatial-grid {
   background-image:
+    linear-gradient(rgba(3, 5, 8, 0.72) 0%, rgba(3, 5, 8, 0.72) 100%),
     radial-gradient(circle at 50% 36%, rgba(99, 102, 241, 0.07) 0%, rgba(0, 229, 255, 0.03) 40%, transparent 70%),
     linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 48px 48px, 48px 48px;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
 }
 
 @keyframes conduit-flow {
