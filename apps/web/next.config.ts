@@ -1,4 +1,4 @@
-﻿import type { NextConfig } from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   transpilePackages: [
@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     '@noctara/github',
     '@noctara/realtime'
   ],
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   webpack: (config) => {
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],

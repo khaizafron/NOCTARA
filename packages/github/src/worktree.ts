@@ -19,9 +19,9 @@ export class GitWorktreeManager {
 
   private runGit(command: string, cwd = this.baseRepoDir): Promise<{ stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
-      exec(`git ${command}`, { cwd }, (error, stdout, stderr) => {
+      exec(`git ${command}`, { cwd }, (error: Error | null, stdout: string | Buffer, stderr: string | Buffer) => {
         if (error) {
-          reject(new Error(`Git command failed (${command}): ${stderr || error.message}`));
+          reject(new Error(`Git command failed (${command}): ${stderr?.toString() || error.message}`));
         } else {
           resolve({ stdout: stdout.toString(), stderr: stderr.toString() });
         }

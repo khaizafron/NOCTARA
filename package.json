@@ -9,6 +9,7 @@
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {
+    "@types/node": "^22.20.2",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   }
