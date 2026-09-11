@@ -24,10 +24,10 @@ export function LiquidMetalButton({
   const dimensions = useMemo(() => {
     if (viewMode === 'icon') {
       return {
-        width: 56,
-        height: 56,
-        innerWidth: 48,
-        innerHeight: 48,
+        width: 42,
+        height: 42,
+        innerWidth: 36,
+        innerHeight: 36,
       };
     }
 

@@ -319,16 +319,16 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
             {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
           </button>
 
-          <div className="mb-0.5 shrink-0">
+          <div className="mb-0.5 shrink-0 flex items-center justify-center">
             {canSend ? (
               <LiquidMetalButton
                 viewMode="icon"
                 onClick={handleSubmit}
-                icon={<Send className="w-4 h-4" />}
+                icon={<Send className="w-3.5 h-3.5" />}
               />
             ) : (
-              <div className="w-14 h-14 rounded-full border border-white/[0.06] bg-white/[0.03] opacity-40 flex items-center justify-center text-zinc-600">
-                {isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              <div className="w-10 h-10 rounded-xl border border-white/[0.06] bg-white/[0.03] opacity-40 flex items-center justify-center text-zinc-600">
+                {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               </div>
             )}
           </div>
