@@ -348,24 +348,28 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="flex items-center justify-between px-4 pb-3 overflow-hidden">
               <div className="flex items-center gap-2">
-                <LiquidMetalButton
-                  viewMode="text"
-                  size="pill"
-                  label="Think"
-                  active={thinkActive}
-                  ariaLabel="Think"
-                  onClick={() => setThinkActive((a) => !a)}
-                  icon={<Lightbulb className={`w-3.5 h-3.5 ${thinkActive ? 'text-amber-400 fill-amber-400/40' : ''}`} />}
-                />
-                <LiquidMetalButton
-                  viewMode="text"
-                  size="pill"
-                  label={deepSearchActive ? 'Deep Search' : 'Search'}
-                  active={deepSearchActive}
-                  ariaLabel={deepSearchActive ? 'Deep Search' : 'Search'}
-                  onClick={() => setDeepSearchActive((a) => !a)}
-                  icon={<Globe className="w-3.5 h-3.5 shrink-0" />}
-                />
+                <motion.button type="button" whileTap={{ scale: 0.95 }} onClick={() => setThinkActive((a) => !a)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
+                    thinkActive
+                      ? 'bg-amber-500/10 border border-amber-500/40 text-amber-300'
+                      : 'bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07]'
+                  }`}>
+                  <Lightbulb className={`w-3.5 h-3.5 ${thinkActive ? 'text-amber-400 fill-amber-400/40' : ''}`} />
+                  Think
+                </motion.button>
+                <motion.button type="button" whileTap={{ scale: 0.95 }} onClick={() => setDeepSearchActive((a) => !a)}
+                  animate={{ width: deepSearchActive ? 108 : 36 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-full text-[11px] font-medium overflow-hidden whitespace-nowrap transition-all ${
+                    deepSearchActive
+                      ? 'bg-blue-500/10 border border-blue-500/40 text-blue-300'
+                      : 'bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07]'
+                  }`}>
+                  <Globe className="w-3.5 h-3.5 shrink-0" />
+                  <motion.span animate={{ opacity: deepSearchActive ? 1 : 0 }} transition={{ duration: 0.2 }} className="shrink-0">
+                    Deep Search
+                  </motion.span>
+                </motion.button>
               </div>
               <div className="flex items-center gap-2">
                 {queuedCount > 0 && (
