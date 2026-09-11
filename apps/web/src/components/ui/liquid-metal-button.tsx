@@ -7,6 +7,9 @@ interface LiquidMetalButtonProps {
   onClick?: () => void;
   viewMode?: 'text' | 'icon';
   icon?: React.ReactNode;
+  size?: 'sm' | 'md' | 'pill';
+  active?: boolean;
+  ariaLabel?: string;
 }
 
 export function LiquidMetalButton({
@@ -14,6 +17,9 @@ export function LiquidMetalButton({
   onClick,
   viewMode = 'text',
   icon,
+  size = 'md',
+  active = false,
+  ariaLabel,
 }: LiquidMetalButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -22,6 +28,24 @@ export function LiquidMetalButton({
   const rippleId = useRef(0);
 
   const dimensions = useMemo(() => {
+    if (size === 'sm') {
+      return {
+        width: 36,
+        height: 36,
+        innerWidth: 30,
+        innerHeight: 30,
+      };
+    }
+
+    if (size === 'pill') {
+      return {
+        width: viewMode === 'icon' ? 44 : 118,
+        height: viewMode === 'icon' ? 32 : 30,
+        innerWidth: viewMode === 'icon' ? 38 : 110,
+        innerHeight: viewMode === 'icon' ? 26 : 24,
+      };
+    }
+
     if (viewMode === 'icon') {
       return {
         width: 42,
@@ -37,7 +61,7 @@ export function LiquidMetalButton({
       innerWidth: 212,
       innerHeight: 56,
     };
-  }, [viewMode]);
+  }, [size, viewMode]);
 
   useEffect(() => {
     const styleId = 'liquid-metal-button-style';
@@ -167,7 +191,9 @@ export function LiquidMetalButton({
             alignItems: 'center',
             justifyContent: 'center',
             background: 'linear-gradient(180deg, rgba(6, 20, 36, 0.86) 0%, rgba(2, 6, 23, 0.94) 100%)',
-            boxShadow: 'inset 0 0 26px rgba(34, 211, 238, 0.12)',
+            boxShadow: active
+              ? 'inset 0 0 26px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.2)'
+              : 'inset 0 0 26px rgba(34, 211, 238, 0.12)',
           }}
         />
 
@@ -199,10 +225,10 @@ export function LiquidMetalButton({
           {viewMode === 'text' && (
             <span
               style={{
-                fontSize: '12px',
+                fontSize: size === 'pill' ? '10px' : '12px',
                 color: '#E0F2FE',
                 fontWeight: 600,
-                letterSpacing: '0.18em',
+                letterSpacing: size === 'pill' ? '0.14em' : '0.18em',
                 textTransform: 'uppercase',
                 textShadow: '0px 0px 10px rgba(56, 189, 248, 0.8), 0px 1px 2px rgba(0, 0, 0, 0.6)',
                 whiteSpace: 'nowrap',
@@ -221,7 +247,7 @@ export function LiquidMetalButton({
           onMouseLeave={handleMouseLeave}
           onMouseDown={() => setIsPressed(true)}
           onMouseUp={() => setIsPressed(false)}
-          aria-label={label}
+          aria-label={ariaLabel ?? label}
           style={{
             position: 'absolute',
             inset: 0,

@@ -14,15 +14,14 @@ const BOOT_LINES = [
   'CHAMBER ONLINE — STANDING BY.',
 ];
 
-// NOX-focused state sequence for a sharper, faster boot cadence
+// Keep the boot orb in a calm, NOX-only cadence: alive but never drifting into speaking-like states.
 const STATE_SEQUENCE: AgentState[] = [
   'IDLE',
   'THINKING',
-  'VERIFYING',
-  'EXECUTING',
-  'THINKING',
-  'LISTENING',
   'IDLE',
+  'THINKING',
+  'IDLE',
+  'THINKING',
 ];
 
 interface NoctaraBootScreenProps {
@@ -41,13 +40,13 @@ export const NoctaraBootScreen: React.FC<NoctaraBootScreenProps> = ({ onComplete
     return () => clearTimeout(t);
   }, [lineIndex]);
 
-  // Keep the NOX orb alive but make the motion smooth and controlled
+  // Smooth NOX-only boot cadence: no abrupt speaking/exec transitions, just steady system awareness.
   useEffect(() => {
     let i = 0;
     const id = setInterval(() => {
       i = (i + 1) % STATE_SEQUENCE.length;
       setOrbState(STATE_SEQUENCE[i]);
-    }, 780);
+    }, 1200);
     return () => clearInterval(id);
   }, []);
 
@@ -80,7 +79,7 @@ export const NoctaraBootScreen: React.FC<NoctaraBootScreenProps> = ({ onComplete
           >
             <NoxLiquidOrbCanvas
               state={orbState}
-              audioActivity={0.12}
+              audioActivity={0.08}
               size={240}
               isSpeaking={false}
             />

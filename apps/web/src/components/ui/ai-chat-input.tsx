@@ -281,10 +281,15 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
             accept="image/*,text/*,.pdf,.doc,.docx,.csv,.json,.md,.py,.ts,.js"
             className="hidden" onChange={(e) => handleFileSelect(e.target.files)} />
 
-          <button type="button" onClick={() => fileInputRef.current?.click()}
-            className="w-10 h-10 shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] hover:border-cyan-500/30 transition-all flex items-center justify-center text-zinc-400 hover:text-cyan-400 active:scale-95 touch-manipulation mb-0.5">
-            <Paperclip className="w-4 h-4" />
-          </button>
+          <div className="mb-0.5 shrink-0 flex items-center justify-center">
+            <LiquidMetalButton
+              viewMode="icon"
+              size="sm"
+              ariaLabel="Attach file"
+              onClick={() => fileInputRef.current?.click()}
+              icon={<Paperclip className="w-3.5 h-3.5" />}
+            />
+          </div>
 
           <div className="relative flex-1">
             <textarea ref={textareaRef} rows={1} value={input}
@@ -310,14 +315,16 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
             </div>
           </div>
 
-          <button type="button" onClick={onToggleListening}
-            className={`w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center active:scale-95 touch-manipulation mb-0.5 ${
-              isListening
-                ? 'bg-cyan-500 text-black border-cyan-300 shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-pulse'
-                : 'bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:text-white hover:bg-white/[0.08]'
-            }`}>
-            {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-          </button>
+          <div className="mb-0.5 shrink-0 flex items-center justify-center">
+            <LiquidMetalButton
+              viewMode="icon"
+              size="sm"
+              ariaLabel={isListening ? 'Disable microphone' : 'Enable microphone'}
+              active={isListening}
+              onClick={onToggleListening}
+              icon={isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+            />
+          </div>
 
           <div className="mb-0.5 shrink-0 flex items-center justify-center">
             {canSend ? (
@@ -341,28 +348,24 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="flex items-center justify-between px-4 pb-3 overflow-hidden">
               <div className="flex items-center gap-2">
-                <motion.button type="button" whileTap={{ scale: 0.95 }} onClick={() => setThinkActive((a) => !a)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-                    thinkActive
-                      ? 'bg-amber-500/10 border border-amber-500/40 text-amber-300'
-                      : 'bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07]'
-                  }`}>
-                  <Lightbulb className={`w-3.5 h-3.5 ${thinkActive ? 'text-amber-400 fill-amber-400/40' : ''}`} />
-                  Think
-                </motion.button>
-                <motion.button type="button" whileTap={{ scale: 0.95 }} onClick={() => setDeepSearchActive((a) => !a)}
-                  animate={{ width: deepSearchActive ? 108 : 36 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-full text-[11px] font-medium overflow-hidden whitespace-nowrap transition-all ${
-                    deepSearchActive
-                      ? 'bg-blue-500/10 border border-blue-500/40 text-blue-300'
-                      : 'bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.07]'
-                  }`}>
-                  <Globe className="w-3.5 h-3.5 shrink-0" />
-                  <motion.span animate={{ opacity: deepSearchActive ? 1 : 0 }} transition={{ duration: 0.2 }} className="shrink-0">
-                    Deep Search
-                  </motion.span>
-                </motion.button>
+                <LiquidMetalButton
+                  viewMode="text"
+                  size="pill"
+                  label="Think"
+                  active={thinkActive}
+                  ariaLabel="Think"
+                  onClick={() => setThinkActive((a) => !a)}
+                  icon={<Lightbulb className={`w-3.5 h-3.5 ${thinkActive ? 'text-amber-400 fill-amber-400/40' : ''}`} />}
+                />
+                <LiquidMetalButton
+                  viewMode="text"
+                  size="pill"
+                  label={deepSearchActive ? 'Deep Search' : 'Search'}
+                  active={deepSearchActive}
+                  ariaLabel={deepSearchActive ? 'Deep Search' : 'Search'}
+                  onClick={() => setDeepSearchActive((a) => !a)}
+                  icon={<Globe className="w-3.5 h-3.5 shrink-0" />}
+                />
               </div>
               <div className="flex items-center gap-2">
                 {queuedCount > 0 && (
