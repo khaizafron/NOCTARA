@@ -8,6 +8,7 @@ import {
   FileText, Image as ImageIcon, File, Loader2,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { LiquidMetalButton } from './liquid-metal-button';
 
 const PLACEHOLDERS = [
   'Instruct NOX to analyse codebase security...',
@@ -318,14 +319,19 @@ export const NoctaraChatInput: React.FC<NoctaraChatInputProps> = ({
             {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
           </button>
 
-          <button type="submit" disabled={!canSend}
-            className={`w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center active:scale-95 touch-manipulation mb-0.5 ${
-              canSend
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400/60 shadow-[0_0_12px_rgba(0,229,255,0.15)]'
-                : 'bg-white/[0.03] text-zinc-600 border-white/[0.06] cursor-not-allowed opacity-40'
-            }`}>
-            {isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </button>
+          <div className="mb-0.5 shrink-0">
+            {canSend ? (
+              <LiquidMetalButton
+                viewMode="icon"
+                onClick={handleSubmit}
+                icon={<Send className="w-4 h-4" />}
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full border border-white/[0.06] bg-white/[0.03] opacity-40 flex items-center justify-center text-zinc-600">
+                {isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </div>
+            )}
+          </div>
         </form>
 
         {/* Expanded Controls */}

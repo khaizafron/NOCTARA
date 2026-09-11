@@ -11,9 +11,11 @@ import { TelemetryBar } from '../components/TelemetryBar';
 import { MemoryInspector } from '../components/MemoryInspector';
 import { AutonomyDock } from '../components/AutonomyDock';
 import { DiagnosticHUD, DiagnosticData } from '../components/DiagnosticHUD';
+import { NoctaraBootScreen } from '../components/BootScreen';
 import { globalAudioEngine } from '../lib/audio-engine';
 
 export default function NoctaraRoomPage() {
+  const [bootDone, setBootDone] = useState(false);
   const [coreState, setCoreState] = useState<AgentState>('IDLE');
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(null);
   const [noxState, setNoxState] = useState<AgentState>('IDLE');
@@ -47,6 +49,10 @@ export default function NoctaraRoomPage() {
 
   const recognitionRef = useRef<any>(null);
   const isInterruptedRef = useRef<boolean>(false);
+
+  // ── FIFO Message Queue: ensures message 1 fully finishes speaking before message 2 starts ──
+  const messageQueueRef = useRef<string[]>([]);
+  const isProcessingRef = useRef<boolean>(false);
 
   const [providerStatus, setProviderStatus] = useState({
     gemini: 'online',
@@ -160,11 +166,11 @@ export default function NoctaraRoomPage() {
     };
   }, [handleBargeIn]);
 
-  // Send message and execute dialogue turn sequence
-  const handleSendMessage = async (content: string) => {
-    handleBargeIn();
+  // ── Core single-turn executor: processes ONE message end-to-end ──────────────
+  const executeSingleTurn = async (content: string) => {
+    // Only interrupt/barge-in if content is being spoken right now (i.e. a barge-in scenario).
+    // Do NOT call handleBargeIn() here — that would cut the speech of a prior queued turn.
     isInterruptedRef.current = false;
-    // Synchronously unlock AudioContext inside user click / enter key event
     globalAudioEngine?.unlockAudio();
 
     const userMsgId = `msg_root_${Date.now()}`;
@@ -193,14 +199,11 @@ export default function NoctaraRoomPage() {
         body: JSON.stringify({ message: content })
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
       const turns = data.turns || [];
 
-      // Deduplication guard: filter any duplicate turn IDs or identical consecutive messages
       const seenIds = new Set<string>();
       const cleanTurns = turns.filter((t: any) => {
         if (!t || !t.content || seenIds.has(t.id)) return false;
@@ -208,7 +211,7 @@ export default function NoctaraRoomPage() {
         return true;
       });
 
-      // 1. Immediately render all full response texts into transcript
+      // Render all response texts immediately into transcript
       for (const turn of cleanTurns) {
         const item: MessageItem = {
           id: turn.id || `msg_${Date.now()}_${turn.speaker}`,
@@ -219,15 +222,14 @@ export default function NoctaraRoomPage() {
           timestamp: turn.timestamp
         };
         setMessages((prev) => {
-          // Avoid duplicate keys
           if (prev.some((m) => m.id === item.id)) return prev;
           return [...prev, item];
         });
       }
 
-      // 2. Sequential Speech Queue: speak each turn's concise spoken summary without overlap
+      // Sequential speech: await each speak() to full completion before next
       for (const turn of cleanTurns) {
-        if (isInterruptedRef.current) break; // User barged in
+        if (isInterruptedRef.current) break;
 
         const speaker = turn.speaker as AgentId;
         setActiveAgent(speaker);
@@ -251,19 +253,20 @@ export default function NoctaraRoomPage() {
         }));
 
         if (globalAudioEngine) {
-          const textToSpeak = (turn.spokenText && turn.spokenText.trim().length > 0) ? turn.spokenText : turn.content;
+          const textToSpeak = (turn.spokenText && turn.spokenText.trim().length > 0)
+            ? turn.spokenText
+            : turn.content;
           if (textToSpeak) {
+            // ← This await blocks until audio fully finishes playing
             await globalAudioEngine.speak(speaker, textToSpeak);
           }
         }
 
-        // Brief natural pause between multiple speakers
         if (!isInterruptedRef.current && cleanTurns.length > 1) {
           await new Promise((resolve) => setTimeout(resolve, 320));
         }
       }
 
-      // Return to calm idle state
       if (!isInterruptedRef.current) {
         setCoreState('IDLE');
         setNoxState('IDLE');
@@ -284,7 +287,7 @@ export default function NoctaraRoomPage() {
           id: `msg_err_${Date.now()}`,
           speaker: 'SYSTEM',
           content: `Operational anomaly: ${err.message}`,
-          spokenText: 'Operational anomaly detected in system chamber.',
+          spokenText: 'Operational anomaly detected.',
           timestamp: new Date().toISOString()
         }
       ]);
@@ -299,6 +302,34 @@ export default function NoctaraRoomPage() {
         setDiagnosticData((prev) => ({ ...prev, runtimeState: 'IDLE' }));
       }, 3500);
     }
+  };
+
+  // ── FIFO Queue drain: processes messages one-by-one, waits for full completion ─
+  const processQueue = async () => {
+    if (isProcessingRef.current) return; // already running — new item will be picked up
+    isProcessingRef.current = true;
+
+    while (messageQueueRef.current.length > 0) {
+      const next = messageQueueRef.current.shift()!;
+      await executeSingleTurn(next);
+
+      // Natural conversational breath between queued messages
+      if (messageQueueRef.current.length > 0 && !isInterruptedRef.current) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
+    }
+
+    isProcessingRef.current = false;
+  };
+
+  // ── Public entry point: enqueue message and drain ────────────────────────────
+  const handleSendMessage = (content: string) => {
+    handleBargeIn(); // Stop any current speech immediately when ROOT issues a new directive
+    isInterruptedRef.current = false;
+    globalAudioEngine?.unlockAudio();
+
+    messageQueueRef.current.push(content);
+    processQueue(); // No-op if already draining — new item will be consumed
   };
 
   // Toggle Continuous Hands-Free JARVIS Open-Mic (Real-Time VAD)
@@ -444,14 +475,27 @@ export default function NoctaraRoomPage() {
   return (
     <main
       className="flex flex-col h-[100dvh] w-full max-w-[100vw] bg-[#030508] text-zinc-100 font-sans select-none overflow-hidden spatial-grid relative"
-      style={{
-        backgroundImage:
-          "url('https://cdn.21st.dev/assets/mirror/c3/c333918af688a4a8a3d004652e6c0ee219457a9d84d380eeb31f513d4b59a09f.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center 90%",
-        backgroundAttachment: "fixed",
-      }}
     >
+      {/* ── Boot Sequence ── renders as fixed overlay, unmounts after 7s */}
+      {!bootDone && <NoctaraBootScreen onComplete={() => setBootDone(true)} />}
+
+      {/* Background atmospheric arc — ONLY this div controls vertical position */}
+      {/* Background atmospheric arc — dedicated fixed layer, never affects layout */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage:
+            "url('https://cdn.21st.dev/assets/mirror/c3/c333918af688a4a8a3d004652e6c0ee219457a9d84d380eeb31f513d4b59a09f.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 85%',
+          transform: 'translateY(28vh)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
       {/* Dynamic Ambient Environmental Aura */}
       <div
         className="absolute inset-0 pointer-events-none transition-all duration-1000"
