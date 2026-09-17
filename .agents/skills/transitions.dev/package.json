@@ -1,8 +1,0 @@
-{
-  "name": "transitions-dev-skill",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "node build/extract.mjs"
-  }
-}
